@@ -4,6 +4,9 @@ import {
   englishRecommendedTransformers,
 } from "obscenity";
 
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
+
 import type { User } from "@prisma/client";
 
 export function formatName(fullName: User["name"] | undefined): string {
@@ -20,4 +23,8 @@ const matcher = new RegExpMatcher({
 
 export function containsProfanity(text: string): boolean {
   return matcher.hasMatch(text);
+}
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
 }
