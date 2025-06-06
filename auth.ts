@@ -4,6 +4,7 @@ import Credentials from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import { Role } from "@prisma/client";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: PrismaAdapter(prisma),
@@ -38,6 +39,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           email: user.email,
           name: user.name,
           image: user.image ?? null,
+          role: user.role,
         };
       },
     }),
@@ -51,12 +53,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       // On subsequent calls, token will be the existing token.
       if (user) {
         token.id = user.id; // user.id comes from the return value of the authorize callback
+        token.role = user.role; // Add role to the token
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user && token.id) {
-        session.user.id = token.id as string; // Add id to session
+        session.user.id = token.id as string;
+        session.user.role = token.role as Role;
       }
       return session;
     },

@@ -221,3 +221,116 @@ File upload for job photos (use Cloudinary or UploadThing)
 Customer-facing job status portal
 
 Basic analytics dashboard (completed jobs, avg time, etc.)
+
+✅ Full Development Roadmap for service-center-crm
+⚙️ Phase 1: Project Setup
+Initialize Git repo (if needed)
+
+Install dependencies:
+
+bash
+Copy
+Edit
+npm install @auth/prisma-adapter bcrypt next-auth prisma @prisma/client
+npm install lucide-react tailwind-variants class-variance-authority
+Initialize Prisma:
+
+bash
+Copy
+Edit
+npx prisma init
+Setup your database (PostgreSQL recommended — local or Supabase/Neon)
+
+Update .env with DATABASE_URL
+
+🎨 Phase 2: UI Setup (Tailwind + shadcn/ui)
+Install shadcn/ui:
+
+bash
+Copy
+Edit
+npx shadcn-ui@latest init
+Add common components:
+
+bash
+Copy
+Edit
+npx shadcn-ui@latest add button input card form
+🔐 Phase 3: Authentication System
+Design your User model in prisma/schema.prisma with role enum:
+
+Fields: id, email, password, name, role, timestamps
+
+Run migration:
+
+bash
+Copy
+Edit
+npx prisma migrate dev --name init
+Create lib/prisma.ts – singleton Prisma client
+
+Setup NextAuth config in lib/auth.ts
+
+Create NextAuth API route in app/api/auth/[...nextauth]/route.ts
+
+Create signup + login forms using shadcn/ui components
+
+Hash password on signup using bcrypt
+
+Protect pages and routes based on roles (RBAC)
+
+📊 Phase 4: CRM Dashboard UI
+Create role-based layout with sidebar/top nav
+
+Setup pages:
+
+/dashboard (Owner/Admin overview)
+
+/jobs (repair orders)
+
+/technicians
+
+/customers
+
+/profile
+
+/login, /signup
+
+Show/hide menu items based on session.user.role
+
+🧰 Phase 5: Core Features (CRM Logic)
+Create Job model in Prisma:
+
+Fields: id, title, customerName, status, assignedTo, notes, timestamps
+
+Relations to User (technician) if needed
+
+Migrate and update Prisma client
+
+Create CRUD UI for Jobs (Add/Edit/Delete/View)
+
+Create filters by status, technician, date
+
+Setup Supervisor view (filtered job list)
+
+Setup Technician view (assigned jobs only)
+
+☁️ Phase 6: Deployment & Security
+Set up environment variables for production
+
+Deploy to Vercel (recommended)
+
+Use a managed DB (Supabase, Railway, Neon)
+
+Enable HTTPS, domain, email protection
+
+Add rate limiting or audit logs (optional)
+
+📦 Phase 7: Optional Add-ons
+Email notification system (e.g., for status update)
+
+File upload for job photos (use Cloudinary or UploadThing)
+
+Customer-facing job status portal
+
+Basic analytics dashboard (completed jobs, avg time, etc.)
