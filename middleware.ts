@@ -2,37 +2,71 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { auth } from "@/auth"; // Your NextAuth config
 import { Role } from "@prisma/client"; // Import your Role enum
+import {
+  publicRoutes,
+  authRoutes,
+  adminRoutesPrefix,
+  DEFAULT_LOGIN_REDIRECT,
+} from "@/lib/routes";
 
 export async function middleware(request: NextRequest) {
-  const session = await auth(); // Retrieves the session, which includes the decoded JWT
   const { pathname } = request.nextUrl;
+  const session = await auth();
+  const isLoggedIn = !!session?.user;
+  const userRole = session?.user?.role;
 
-  // Define admin routes
-  const adminRoutes = ["/admin"]; // Add more specific admin paths like /admin/users, /admin/settings
-
-  // Check if the current path starts with any of the admin routes
-  if (adminRoutes.some((route) => pathname.startsWith(route))) {
-    if (!session?.user) {
-      // Not logged in, redirect to login page
-      // Preserve the intended destination for redirect after login
-      const loginUrl = new URL("/login", request.url);
-      loginUrl.searchParams.set("callbackUrl", pathname);
-      return NextResponse.redirect(loginUrl);
-    }
-
-    if (session.user.role !== Role.ADMIN) {
-      // Logged in but not an admin, redirect to an unauthorized page or home
-      // You can create a specific /unauthorized page
-      return NextResponse.redirect(new URL("/unauthorized", request.url));
-    }
+  // Allow NextAuth specific API paths and public asset paths
+  if (
+    pathname.startsWith("/api/auth") ||
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/static") ||
+    pathname.endsWith(".ico") ||
+    pathname.endsWith(".png") ||
+    pathname.endsWith(".jpg")
+  ) {
+    return NextResponse.next();
   }
 
-  // Add other general protections if needed, e.g., all /dashboard routes require login
+  const isPublicRoute = publicRoutes.includes(pathname);
+  const isAuthRoute = authRoutes.includes(pathname);
+  const isAdminRoute = pathname.startsWith(adminRoutesPrefix);
 
-  return NextResponse.next(); // Continue to the requested page if authorized
+  if (isAuthRoute) {
+    if (isLoggedIn) {
+      // If logged in and trying to access login/signup, redirect to dashboard
+      return NextResponse.redirect(
+        new URL(DEFAULT_LOGIN_REDIRECT, request.url)
+      );
+    }
+    // Allow access to login/signup if not logged in
+    return NextResponse.next();
+  }
+
+  if (!isLoggedIn && !isPublicRoute) {
+    // If not logged in and not a public route, redirect to login
+    let callbackUrl = pathname;
+    if (request.nextUrl.search) {
+      callbackUrl += request.nextUrl.search;
+    }
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("callbackUrl", callbackUrl);
+    return NextResponse.redirect(loginUrl);
+  }
+
+  // At this point, user is either logged in or accessing a public route
+  if (isLoggedIn) {
+    if (isAdminRoute && userRole !== Role.ADMIN) {
+      // Logged in, trying to access admin route without admin role
+      return NextResponse.redirect(new URL("/unauthorized", request.url));
+    }
+    // Add more specific role checks for dashboard sub-routes if needed here
+  }
+  // If all checks pass, allow the request
+  return NextResponse.next();
 }
 
 // Configure which paths the middleware should run on
 export const config = {
-  matcher: ["/admin/:path*", "/profile/:path*"], // Protect all routes under /admin and /profile
+  // Match all routes except for static files, _next internal files, and favicon.
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|logo.svg).*)"],
 };

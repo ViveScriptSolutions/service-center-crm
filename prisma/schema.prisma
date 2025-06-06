@@ -18,6 +18,23 @@ enum Role {
   ADMIN
 }
 
+enum JobStatus {
+  ITEM_RECEIVED // "Item Received"
+  IN_QUEUE // "In Queue"
+  UNDER_REPAIR // "Under Repair"
+  AWAITING_PARTS // "Awaiting Parts"
+  READY_FOR_PICKUP // "Ready for Pickup"
+  PICKED_UP // "Picked Up"
+  CANCELLED // "Cancelled"
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  PARTIALLY_PAID
+  REFUNDED
+}
+
 model User {
   id            Int       @id @default(autoincrement())
   name          String?
@@ -29,6 +46,12 @@ model User {
   posts         Post[]
   accounts      Account[]
   sessions      Session[]
+
+  assignedJobs  Job[] @relation("AssignedJobs")
+  diagnosedJobs Job[] @relation("DiagnosedJobs")
+  deliveredJobs Job[] @relation("DeliveredJobs")
+  createdJobs   Job[] @relation("CreatedJobs") // User who created the job entry
+
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -63,6 +86,74 @@ model Session {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Customer {
+  id        Int      @id @default(autoincrement())
+  name      String
+  phone     String?
+  email     String?  @unique
+  address   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  jobs      Job[]
+}
+
+model Job {
+  id                          Int         @id @default(autoincrement())
+  receiptNo                   String      @unique // e.g., JOB-YYYYMMDD-XXXX
+  title                       String
+  status                      JobStatus   @default(ITEM_RECEIVED)
+  notes                       String?
+
+  customerId                  Int
+  customer                    Customer    @relation(fields: [customerId], references: [id])
+
+  assignedToId                Int?
+  assignedTo                  User?       @relation("AssignedJobs", fields: [assignedToId], references: [id]) // Technician
+
+  checkInDate                 DateTime    @default(now())
+  printerBrand                String?
+  printerModel                String?
+  printerSerial               String?
+  accessoriesReceived         String?
+  imageUrl1                   String?
+  imageUrl2                   String?
+  imageUrl3                   String?
+  initialObservations         String?
+  problemsReported            String
+  possibleCauses              String?
+  physicalDamageFound         Boolean     @default(false)
+  physicalDamageDescription   String?
+  partsLikelyNeeded           String?
+
+  diagnosisNotes              String?
+  diagnosedById               Int?
+  diagnosedBy                 User?       @relation("DiagnosedJobs", fields: [diagnosedById], references: [id])
+  expectedDeliveryDate        DateTime?
+
+  repairSummary               String?
+  workDone                    String?
+  partsReplaced               Json?
+  partsCost                   Decimal?    @db.Decimal(10, 2)
+  laborCost                   Decimal?    @db.Decimal(10, 2)
+  otherCharges                Decimal?    @db.Decimal(10, 2)
+  totalCharge                 Decimal?    @db.Decimal(10, 2)
+  paymentStatus               PaymentStatus @default(PENDING)
+  customerNotifiedDate        DateTime?
+  paymentMethod               String?
+  pickupDate                  DateTime?
+  customerPickedUp            Boolean     @default(false)
+  deliveryTimestamp           DateTime?
+  deliveredById               Int?
+  deliveredBy                 User?       @relation("DeliveredJobs", fields: [deliveredById], references: [id])
+
+  createdById                 Int?
+  createdBy                   User?       @relation("CreatedJobs", fields: [createdById], references: [id])
+
+  createdAt                   DateTime    @default(now())
+  updatedAt                   DateTime    @updatedAt
 }
 
 model Post {

@@ -63,11 +63,21 @@ export function UserMenu({ user }: { user: UserSession }) {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link href={`/users/${user.id}`} className="cursor-pointer">
+          <Link href="/dashboard/profile" className="cursor-pointer">
+            {" "}
+            {/* Updated Profile Link */}
             <UserIcon className="mr-2 h-4 w-4" />
             <span>View Profile</span>
           </Link>
         </DropdownMenuItem>
+        {user.role === Role.ADMIN && (
+          <DropdownMenuItem asChild>
+            <Link href="/admin" className="cursor-pointer">
+              <ShieldCheck className="mr-2 h-4 w-4" />
+              <span>Admin Panel</span>
+            </Link>
+          </DropdownMenuItem>
+        )}
         <DropdownMenuItem
           onSelect={async (event) => {
             event.preventDefault();

@@ -1,12 +1,21 @@
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { AuthForm } from "../auth-form";
 
-export default function SignupPage() {
+export default function SignUpPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="p-6 border rounded-lg shadow-md w-full max-w-md">
-        <h1 className="text-xl font-bold mb-4">Create an Account</h1>
+    <div className="min-h-screen flex items-center justify-center bg-muted/40 p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl">Create an Account</CardTitle>
+          <CardDescription>Enter your details to sign up.</CardDescription>
+        </CardHeader>
         <AuthForm type="signup" />
-      </div>
+      </Card>
     </div>
   );
 }
