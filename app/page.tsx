@@ -11,6 +11,8 @@ import type { User } from "@prisma/client";
 import type { Session } from "next-auth";
 
 function UserMenu({ user }: { user: NonNullable<Session["user"]> }) {
+  console.log(user);
+
   return (
     <div className="relative group">
       <button className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-50 transition-colors">
@@ -95,6 +97,9 @@ export default async function Home() {
   noStore();
 
   const session = await auth();
+
+  console.log(session);
+
   // limit to 100 users and cache for 60 seconds.
   const users = await prisma.user.findMany({
     take: 100,
