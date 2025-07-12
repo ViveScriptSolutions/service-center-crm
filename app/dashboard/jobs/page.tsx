@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import prisma from "@/lib/prisma";
 import { auth } from "@/auth";
+import { columns } from "@/components/dashboard/jobs/columns";
+import { DataTable } from "@/components/dashboard/jobs/data-table";
 
 export default async function JobsPage() {
   const session = await auth(); // For role-based fetching later
@@ -19,7 +21,6 @@ export default async function JobsPage() {
   const jobs = await prisma.job.findMany({
     orderBy: { createdAt: "desc" },
     include: { customer: true, assignedTo: true }, // Include related data
-    take: 20, // Limit for now
   });
 
   return (
@@ -38,25 +39,7 @@ export default async function JobsPage() {
           <CardDescription>List of all repair jobs.</CardDescription>
         </CardHeader>
         <CardContent>
-          {/* TODO: Replace with ShadCN DataTable component */}
-          {jobs.length === 0 ? (
-            <p>No jobs found.</p>
-          ) : (
-            <ul>
-              {jobs.map((job) => (
-                <li key={job.id} className="py-2 border-b">
-                  <Link
-                    href={`/dashboard/jobs/${job.id}`}
-                    className="hover:underline"
-                  >
-                    {job.receiptNo} - {job.title} (Customer: {job.customer.name}
-                    )
-                    {job.assignedTo && ` - Assigned to: ${job.assignedTo.name}`}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
+          <DataTable columns={columns} data={jobs} />
         </CardContent>
       </Card>
     </div>

@@ -1,6 +1,7 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { Role } from "@prisma/client";
+import Link from "next/link";
 
 export default async function AdminPage() {
   const session = await auth();
@@ -28,11 +29,20 @@ export default async function AdminPage() {
           </p>
         </header>
         <div className="bg-white shadow-xl rounded-lg p-6 md:p-8">
-          <p className="text-gray-700">
-            This is the protected admin area. Only users with the ADMIN role can
-            see this.
-          </p>
-          {/* Add admin-specific content here */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <Link href="/admin/users">
+              <div className="bg-white shadow-sm rounded-lg p-6 hover:shadow-md transition-shadow">
+                <h2 className="text-xl font-bold text-gray-900">Users</h2>
+                <p className="text-gray-600">Manage all users</p>
+              </div>
+            </Link>
+            <Link href="/admin/staff">
+              <div className="bg-white shadow-sm rounded-lg p-6 hover:shadow-md transition-shadow">
+                <h2 className="text-xl font-bold text-gray-900">Staff</h2>
+                <p className="text-gray-600">Manage staff members</p>
+              </div>
+            </Link>
+          </div>
         </div>
       </div>
     </div>

@@ -10,6 +10,9 @@ import {
   CreateJobInternalSchema,
   type CreateJobInput,
 } from "@/lib/schemas/jobSchemas";
+import { stripe } from "@/lib/stripe";
+import { resend } from "@/lib/resend";
+import JobCreatedEmail from "@/emails/job-created";
 
 // The action now takes the raw form values (IDs as strings)
 export async function createJobAction(
@@ -126,12 +129,80 @@ export async function createJobAction(
         customerId: finalCustomerId,
         createdById: agentId,
       },
+      include: {
+        customer: true,
+      },
     });
+
+    if (newJob.customer.email) {
+      await resend.emails.send({
+        from: "onboarding@resend.dev",
+        to: newJob.customer.email,
+        subject: `Job Created: ${newJob.title}`,
+        react: JobCreatedEmail({ jobId: newJob.id }),
+      });
+    }
 
     revalidatePath("/dashboard/jobs"); // Revalidate the jobs list page
     return { success: "Job created successfully!", job: newJob };
   } catch (error) {
     console.error("Error creating job:", error);
     return { error: "Failed to create job. Please try again." };
+  }
+}
+
+export async function markJobAsPickedUp(jobId: number) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { error: "User not authenticated." };
+  }
+  const agentId = parseInt(session.user.id);
+
+  try {
+    const updatedJob = await prisma.job.update({
+      where: { id: jobId },
+      data: {
+        status: JobStatus.PICKED_UP,
+        pickupDate: new Date(),
+        deliveredById: agentId,
+      },
+    });
+    revalidatePath(`/dashboard/jobs/${jobId}`);
+    revalidatePath("/dashboard/jobs");
+    return { success: "Job marked as picked up.", job: updatedJob };
+  } catch (error) {
+    console.error("Error marking job as picked up:", error);
+    return { error: "Failed to mark job as picked up. Please try again." };
+  }
+}
+
+export async function createPaymentIntent(jobId: number) {
+  const job = await prisma.job.findUnique({
+    where: { id: jobId },
+  });
+
+  if (!job) {
+    return { error: "Job not found." };
+  }
+
+  const amount =
+    (job.partsCost?.toNumber() || 0) +
+    (job.laborCost?.toNumber() || 0) +
+    (job.otherCharges?.toNumber() || 0);
+
+  if (amount <= 0) {
+    return { error: "Invalid amount." };
+  }
+
+  try {
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: Math.round(amount * 100), // convert to cents
+      currency: "usd",
+      metadata: { jobId: job.id },
+    });
+    return { clientSecret: paymentIntent.client_secret };
+  } catch (error) {
+    console.error("Error creating payment intent:", error);
+    return { error: "Failed to create payment intent." };
   }
 }

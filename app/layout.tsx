@@ -12,9 +12,11 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+import Link from "next/link";
+
 export const metadata: Metadata = {
-  title: "Superblog",
-  description: "Superblog is a blog platform for the modern age.",
+  title: "ServicePro",
+  description: "Service Center CRM",
 };
 
 export default function RootLayout({
@@ -28,6 +30,32 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {children}
+        <footer className="bg-white border-t">
+          <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-center space-x-6">
+              <Link href="/about" className="text-gray-500 hover:text-gray-700">
+                About
+              </Link>
+              <Link href="/contact" className="text-gray-500 hover:text-gray-700">
+                Contact
+              </Link>
+              <Link href="/terms" className="text-gray-500 hover:text-gray-700">
+                Terms of Service
+              </Link>
+              <Link href="/privacy" className="text-gray-500 hover:text-gray-700">
+                Privacy Policy
+              </Link>
+              <Link href="/support" className="text-gray-500 hover:text-gray-700">
+                Support
+              </Link>
+            </div>
+            <div className="mt-8">
+              <p className="text-center text-gray-400">
+                &copy; 2024 ServicePro. All rights reserved.
+              </p>
+            </div>
+          </div>
+        </footer>
       </body>
     </html>
   );
