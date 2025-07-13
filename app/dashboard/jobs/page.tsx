@@ -10,12 +10,12 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import prisma from "@/lib/prisma";
-import { auth } from "@/auth";
+// import { auth } from "@/auth";
 import { columns } from "@/components/dashboard/jobs/columns";
 import { DataTable } from "@/components/dashboard/jobs/data-table";
 
 export default async function JobsPage() {
-  const session = await auth(); // For role-based fetching later
+  // const session = await auth(); // For role-based fetching later
 
   // TODO: Implement pagination, filtering, and role-based data fetching
   const jobs = await prisma.job.findMany({

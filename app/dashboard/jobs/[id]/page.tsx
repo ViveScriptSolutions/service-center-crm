@@ -3,7 +3,6 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
-import { JobStatus } from "@prisma/client";
 import {
   Card,
   CardContent,
@@ -12,7 +11,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { markJobAsPickedUp } from "@/actions/jobActions";
 import { PickUpButton } from "./pickup-button";
 import Link from "next/link";
 import { QRCode } from "./qr-code";
@@ -58,9 +56,7 @@ export default async function JobDetailsPage({
         <Card>
           <CardHeader>
             <CardTitle>{job.title}</CardTitle>
-            <CardDescription>
-              Receipt No: {job.receiptNo}
-            </CardDescription>
+            <CardDescription>Receipt No: {job.receiptNo}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex justify-between">

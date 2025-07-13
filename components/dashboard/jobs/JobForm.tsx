@@ -5,11 +5,10 @@ import { SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useRouter } from "next/navigation";
-import { Job, Customer, User, JobStatus, PaymentStatus } from "@prisma/client"; // Import Prisma types
+import { Job, Customer, User, JobStatus } from "@prisma/client"; // Import Prisma types
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
@@ -295,8 +294,8 @@ export function JobForm({ job, customers, technicians }: JobFormProps) {
                 </SelectContent>
               </Select>
               <FormDescription>
-                If you select an existing customer, you don't need to fill the
-                fields below.
+                If you select an existing customer, you don&apos;t need to fill
+                the fields below.
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -590,8 +589,8 @@ export function JobForm({ job, customers, technicians }: JobFormProps) {
               ? "Saving..."
               : "Creating..."
             : job
-            ? "Save Changes"
-            : "Create Job"}
+              ? "Save Changes"
+              : "Create Job"}
         </Button>
       </form>
     </Form>

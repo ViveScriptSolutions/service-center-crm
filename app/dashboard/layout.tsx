@@ -2,12 +2,12 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import {
-  Home,
+  // Home,
   Briefcase,
   Users,
   UserCog,
   User,
-  Settings,
+  // Settings,
   LayoutDashboard,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
