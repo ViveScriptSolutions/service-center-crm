@@ -5,11 +5,10 @@ import { SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useRouter } from "next/navigation";
-import { Job, Customer, User, JobStatus, PaymentStatus } from "@prisma/client"; // Import Prisma types
+import { Job, Customer, User, JobStatus } from "@prisma/client"; // Import Prisma types
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
@@ -26,8 +25,8 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { createJobAction } from "@/actions/jobActions"; // Import schema and type
+} from "@/components/ui/form"; // Import schema and type
+import { createJobAction, updateJobAction } from "@/actions/jobActions";
 import {
   Popover,
   PopoverContent,
@@ -38,35 +37,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { JobFormValidationSchema } from "@/lib/schemas/jobSchemas";
-
-// The Zod schema is now imported from jobActions.ts
-// const JobFormSchema = z.object({ ... });
-
-// This type represents the data structure of the form fields as they are managed by react-hook-form.
-// This should align with the *input* types that CreateJobSchema expects before transformations.
-export type FormInputValues = {
-  // Exporting can sometimes help with type inference in complex scenarios
-  receiptNo: string;
-  title: string;
-  status?: JobStatus; // Optional in form, Zod schema will default it
-  assignedToId?: string; // String from select
-  checkInDate?: Date;
-  printerBrand?: string;
-  printerModel?: string;
-  printerSerial?: string;
-  accessoriesReceived?: string;
-  imageUrl1?: string;
-  imageUrl2?: string;
-  imageUrl3?: string;
-  problemsReported: string;
-  initialObservations?: string;
-  notes?: string;
-  customerId?: string; // In the form, this will be a string from the <select>
-  customerName?: string;
-  customerPhone?: string;
-  customerEmail?: string;
-  customerAddress?: string;
-};
+import type { JobFormInputValues } from "@/lib/types/jobTypes"; // Import the type
 
 // CreateJobInput is the type AFTER Zod validation and transformation by CreateJobSchema
 // type JobFormValues = CreateJobInput; // This was causing the issue
@@ -87,7 +58,7 @@ export function JobForm({ job, customers, technicians }: JobFormProps) {
     !job?.customerId
   ); // Show if no existing customer selected
 
-  const form = useForm<FormInputValues>({
+  const form = useForm<JobFormInputValues>({
     // Use the form field specific type
     resolver: zodResolver(JobFormValidationSchema), // Use the form-specific validation schema
     defaultValues: job
@@ -145,7 +116,7 @@ export function JobForm({ job, customers, technicians }: JobFormProps) {
 
   // The `values` parameter here will be of type `z.infer<typeof JobFormValidationSchema>`
   // because `zodResolver` uses JobFormValidationSchema.
-  const onSubmit: SubmitHandler<FormInputValues> = (values) => {
+  const onSubmit: SubmitHandler<JobFormInputValues> = (values) => {
     // Even though SubmitHandler is typed with FormInputValues,
     // zodResolver ensures `values` here is actually z.infer<typeof JobFormValidationSchema>
     // zodResolver has already processed and transformed the form data.
@@ -153,31 +124,39 @@ export function JobForm({ job, customers, technicians }: JobFormProps) {
     setFormSuccess("");
 
     startTransition(async () => {
-      // For now, we are only implementing create. Edit would need a separate action or logic.
       if (job) {
-        setFormError(
-          "Editing existing jobs via this form is not yet implemented."
+        // Update existing job
+        const result = await updateJobAction(
+          job.id,
+          values as z.infer<typeof JobFormValidationSchema>
         );
-        return;
-      }
-      // The `values` here are JobFormFieldValues.
-      // The createJobAction expects CreateJobInput (which is after Zod transformation).
-      // ZodResolver handles this: it takes form values, validates/transforms using CreateJobSchema, then passes the transformed data.
-      const result = await createJobAction(
-        values as z.infer<typeof JobFormValidationSchema>
-      ); // Cast needed because onSubmit's 'values' is FormInputValues
-      // but createJobAction expects the Zod schema's output.
-
-      if (result.error) {
-        setFormError(
-          result.error +
-            (result.details
-              ? ` Details: ${JSON.stringify(result.details, null, 2)}`
-              : "")
-        );
+        if (result.error) {
+          setFormError(
+            result.error +
+              (result.details
+                ? ` Details: ${JSON.stringify(result.details, null, 2)}`
+                : "")
+          );
+        } else {
+          setFormSuccess(result.success);
+          router.push(`/dashboard/jobs/${job.id}`); // Navigate to job detail page
+        }
       } else {
-        setFormSuccess(result.success);
-        router.push("/dashboard/jobs");
+        // Create new job
+        const result = await createJobAction(
+          values as z.infer<typeof JobFormValidationSchema>
+        );
+        if (result.error) {
+          setFormError(
+            result.error +
+              (result.details
+                ? ` Details: ${JSON.stringify(result.details, null, 2)}`
+                : "")
+          );
+        } else {
+          setFormSuccess(result.success);
+          router.push("/dashboard/jobs"); // Navigate to jobs list
+        }
       }
     });
   };
@@ -295,8 +274,8 @@ export function JobForm({ job, customers, technicians }: JobFormProps) {
                 </SelectContent>
               </Select>
               <FormDescription>
-                If you select an existing customer, you don't need to fill the
-                fields below.
+                If you select an existing customer, you don&apos;t need to fill
+                the fields below.
               </FormDescription>
               <FormMessage />
             </FormItem>
